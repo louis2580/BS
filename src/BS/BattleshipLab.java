@@ -1,6 +1,4 @@
-package battleshipCode;
-
-import battleshipCode.Board;
+package BS;
 
 
 /**
@@ -13,9 +11,6 @@ import battleshipCode.Board;
 public class BattleshipLab
 {    
 	public static void main(String[] args) {
-		/*Board board = new Board();
-		board.printBoard();
-		board.addShip();*/
 		
 		Game game = new Game();
         game.start();

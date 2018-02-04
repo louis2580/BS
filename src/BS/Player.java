@@ -1,4 +1,4 @@
-package battleshipCode;
+package BS;
 
 import java.awt.Point;
 import java.util.HashMap;
@@ -24,7 +24,8 @@ public class Player {
         this.id = id;
         this.lives = PLAYER_LIVES;
         this.board = new Board();
-        board.addShip();
+        // Ajoute les ships à la création !
+        board.placeShipsOnBoard();
         this.targetHistory = new HashMap<>();
         this.scanner = new Scanner(System.in);
     }
@@ -62,8 +63,9 @@ public class Player {
     public void turnToPlay(Player opponent) {
         System.out.printf("%n%nPlayer %d, Choisissez les coordonnees que vous voulez toucher (x y) ", id);
         Scanner sc = new Scanner(System.in);
-		
-		// Première case = from
+        
+        opponent.board.ChangePosition("Porte-avion", "droite", 1);
+
 		System.out.println("Place your first position - Lettre");
 		String str = sc.nextLine();
 		char carac = str.charAt(0);
@@ -76,10 +78,24 @@ public class Player {
 
         while(targetHistory.get(target) != null) {
             System.out.print("This position has already been tried");
-            //point = new Point(scanner.nextInt(), scanner.nextInt());
+            System.out.printf("%n%nPlayer %d, Choisissez les coordonnees que vous voulez toucher (x y) ", id);
+            
+            Scanner sc2 = new Scanner(System.in);
+    		System.out.println("Place your first position - Lettre");
+    		String str2 = sc2.nextLine();
+    		char carac2 = str2.charAt(0);
+    		System.out.println("Chiffre :");
+    		int j2 = sc.nextInt();
+    		System.out.println("Vous avez saisi la case : " + carac2 + j2);
+
+    		target = Board.ToPoint(carac2, j2);
+    		sc2.reset();
         }
 
         attack(target, opponent);
+        
+     // essai
+        //opponent.board.ChangePosition("Porte-avion", "droite", 1);
     }
 
     /**
@@ -90,7 +106,7 @@ public class Player {
      */
     private void attack(Point target, Player opponent) {
     	
-        Ship ship = opponent.board.targetShip(target);
+        /*Ship ship = opponent.board.targetShip(target);
         boolean isShipHit = (ship != null) ? true : false;
 
         if(isShipHit) {
@@ -102,9 +118,8 @@ public class Player {
                 id,
                 (int)target.getX(),
                 (int)target.getY());
-        System.out.println("...and " + ((isShipHit) ? "HITS!" : "misses..."));
+        System.out.println("...and " + ((isShipHit) ? "HITS!" : "misses..."));*/
         
-        // essai
-        opponent.board.ChangePosition("Porte-avion", "droite", 1);
+        
     }
 }

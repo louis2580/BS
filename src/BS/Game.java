@@ -1,4 +1,4 @@
-package battleshipCode;
+package BS;
 
 public class Game {
     private Player[] players;
