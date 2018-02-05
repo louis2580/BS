@@ -2,18 +2,19 @@ package BS;
 
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Ship {
 
-	private String name;
-	private int size;
-	private boolean isSunk;
-	private int life;
-	private Point from;
-	private Point to;
+	private String name;		// nom du bateau
+	private int size;			// taille
+	private int reach;			// Portée
+	private boolean isSunk;		// passe à true si le bateau est coulé
+	private int life;			// Chaque bateau commence avec une vie de 2
+	private Point from;				// Première case du bateau
+	private boolean horizontal;			// true si le bateau est positionné horizontalement
+	private ArrayList<Point> allCases;		// Dernière case du bateau
 	
-	private ArrayList<Point> allPointsOfTheShip;
-	private int reach;
 	
 	public Ship(String name, int size, int reach) {
         this.name = name;
@@ -21,7 +22,7 @@ public class Ship {
         this.isSunk = false;
         this.life = 2;
         this.reach = reach;
-        this.allPointsOfTheShip = new ArrayList<Point>();
+        this.allCases = new ArrayList<Point>();
     }
 	
 	public String getName() {
@@ -32,6 +33,10 @@ public class Ship {
         return size;
     }
     
+    public int getLife() {
+		return life;
+	}
+
     public boolean isSunk() {
         return isSunk;
     }
@@ -44,48 +49,75 @@ public class Ship {
         return reach;
     }
     
-    
-    /////////////////////////
-    /*public void setPosition(Point from2, Point to2) {
-        from = from2;
-        to = to2;
-    }*/
+    public boolean isHorizontal() {
+    	return horizontal;
+    }
+
+
     
     public Point getPositionFrom() {
         return from;
     }
-    
-    public Point getPositionTo() {
-        return to;
+
+    public void updatePosition(Point ptFrom, boolean horizontal) {
+        int oriX = 0, oriY = 0;
+        if (horizontal)
+        {
+        	oriX = 1;
+        } else
+        {
+        	oriY = 1;
+        }
+    	
+    	if (ptFrom.x + oriX * this.size > 10 || ptFrom.y + oriY * this.size > 10)
+    	{
+    		System.out.printf("Nouvelle position invalide : %d; %d", ptFrom.y, ptFrom.x);
+    	} else
+    	{
+    		from = ptFrom;
+    		this.allCases.clear();
+    		Point newPoint;
+    		for (int i = 0; i < this.size; i++)
+    		{
+    			newPoint = new Point(ptFrom.x + i*oriX, ptFrom.y + i*oriY);
+    			pushPointShip(newPoint);
+    		}
+    	}
     }
     
     
     public void pushPointShip(Point push) {
-    	allPointsOfTheShip.add(push);
+    	allCases.add(push);
     }
     
     public void setPointShip(int index, Point element) {
-    	allPointsOfTheShip.add(index, element);
+    	allCases.add(index, element);
     }
     
     public Point getPointShip(int index) {
-    	return allPointsOfTheShip.get(index);
+    	return allCases.get(index);
     }
     
     public ArrayList<Point> getAllPointShip() {
-    	return allPointsOfTheShip;
+    	return allCases;
     }
     
     ////////////////////////
     
     
-    public void shipWasHit() {
-        if(life == 0) {
+    public void shipWasHit(Point touche) {
+		int iTouch = allCases.indexOf(touche);
+		allCases.remove(iTouch);		// Pour ne pas toucher 2 fois de suite au même endroit
+		
+        life--;
+        
+        System.out.print("Vous avez touché un " + name);
+        if(life <= 0) {
             isSunk = true;
-            System.out.println("You sunk the " + name);
+            System.out.print("... et l'avez coulé ! \n\n");
             return;
         }
-        life--;
+        System.out.println();
     }
 	
 }

@@ -4,7 +4,7 @@ package BS;
 /**
  * Simulates a Battleship game. 
  * 
- * @author  Adrien Perraud
+ * @author  Adrien Perraud Louis Berger
  * @version 1.0 
  */
 

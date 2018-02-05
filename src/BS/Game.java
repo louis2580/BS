@@ -22,14 +22,19 @@ public class Game {
         int size = players.length;
         Player player = null;
                 		
-        		
-        while(players[0].getLives() > 0 && players[1].getLives() > 0) {
+
+        // while(players[0].getLives() > 0 && players[1].getLives() > 0) {
+        
+        while(players[0].board.ships.size() > 0 && players[1].board.ships.size() > 0) {
             players[i++ % size].turnToPlay(players[j++ % size]);
             player = (players[0].getLives() < players[1].getLives()) ?
                     players[1] :
                     players[0];
         }
 
-        System.out.printf("Congrats Player %d, you won!",player.getId());
+        System.out.printf("\n***********************\n"
+        				  + "*   ANEANTISSEMENT    *\n"
+        				  + "* Joueur %d l'emporte! *\n"
+        				  + "***********************\n",player.getId());
     }
 }
