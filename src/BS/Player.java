@@ -1,16 +1,12 @@
 package BS;
 
 import java.awt.Point;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Scanner;
 
 public class Player {
     private int id;
     private int lives;
     Board board;
-    private Map<Point, Boolean> targetHistory;
-    private Scanner scanner;
     public boolean canMove;
     
     public static final int PLAYER_LIVES = 10; //sum of all the ships, 2 lives/ship
@@ -21,14 +17,14 @@ public class Player {
      * @param id the id
      */
     public Player(int id) {
+    	// "Clear" the console
+    	System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
         System.out.printf("%n=== Joueur %s, à toi ! ==== \n", id);
         this.id = id;
         this.lives = PLAYER_LIVES;
         this.board = new Board();
         // Ajoute les ships à la création !
         board.placeShipsOnBoard();
-        this.targetHistory = new HashMap<>();
-        this.scanner = new Scanner(System.in);
         this.canMove = true;
     }
 
@@ -63,18 +59,23 @@ public class Player {
      * @param opponent the opponent
      */
     public void turnToPlay(Player opponent) {
-        System.out.printf("%n%n%n%n%n%n%n%nTour du joueur %d : \n", id);
+        
+    	// "Clear" the console
+    	System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+    	
+    	System.out.printf("%nTour du joueur %d : \n", id);
+		System.out.println("Appuyez sur Entrée pour commencer...");
 
-		Point target = new Point();
-        // opponent.board.ChangePosition("Porte-avion", "droite", 1);
-
-		do {
-			System.out.printf("Tir sur la case : ");
-
-			// Entrer les coordonnées comme suit: a1
-			
-			target = board.askForValidCoordinates();
-		} while (target.x<0 || target.x>=10 || target.y<0 || target.y>=10);
+		Scanner scanner = new Scanner(System.in);
+		scanner.nextLine();
+		
+    	// Montrer la liste de navires restants de l'adversaire
+        opponent.ShowListShip();
+		System.out.println("Votre grille : ");
+		board.printBoard();
+        
+		Point target;
+		target = board.askForValidFiringCoordinates();
 
 		// attaque
         Attack(target, opponent);
@@ -89,10 +90,11 @@ public class Player {
     		System.out.println("Déplacement impossible : vous avez été touché");
     	}
     	
-    	// Montrer la liste de navires restants pour l'adversaire
-        ShowListShip();
         this.canMove = true;
         
+		System.out.println("Appuyez sur Entrée pour finir votre tour...");
+
+		scanner.nextLine();
     }
     
     
@@ -109,11 +111,10 @@ public class Player {
     	int index = 0;
         for (Ship ship : opponent.board.ships)
         {
-        	isShipHit = (ship.getAllPointShip().contains(target)) ? true : false;
+        	// On regarde si la case appartient à un navire et qu'elle n'a pas déjà été touhé
+        	isShipHit = (ship.getAllPointShip().contains(target) 
+        			 && !ship.getTouchedPoint().contains(target));
         	
-	        System.out.printf("Joueur %d, a tiré en %s",id, board.Point2Coord(target));
-	        System.out.println("... et " + ((isShipHit) ? "TOUCHE!" : "manque..."));
-	        
         	if(isShipHit) {
 	            ship.shipWasHit(target);
 	            opponent.decrementLiveByOne();
@@ -122,6 +123,10 @@ public class Player {
 	        }        
         	index++;
         }
+
+        System.out.printf("Joueur %d, a tiré en %s",id, board.Point2Coord(target));
+        System.out.println("... et " + ((isShipHit) ? "TOUCHE!" : "manque..."));
+        
         if (isShipHit && opponent.board.ships.get(index).isSunk())
         {
         	opponent.board.ships.remove(index);
@@ -132,7 +137,7 @@ public class Player {
     {
     	for (Ship ship : board.ships)
     	{
-    		System.out.printf("\n\n\n\n\n\nJoueur %d : %s - vie= %d, premier pt : %s\n", this.id, ship.getName(), 
+    		System.out.printf("\nJoueur %d : %s - vie= %d, premier pt : %s\n", this.id, ship.getName(), 
     				ship.getLife(), board.Point2Coord(ship.getPositionFrom()));
     	}
     }
@@ -166,7 +171,6 @@ public class Player {
     		}
 			
 		} while (!(choixNav >= 0 && choixNav <= board.ships.size()));
-    	
     	if (choixNav == 0) return; //  Si le joueur ne veut pas faire de déplacement, il entre '0'
     	
     	Ship shipToMove = board.ships.get(choixNav-1);
@@ -188,8 +192,11 @@ public class Player {
 		
 		shipToMove.updatePosition(targetPos, shipToMove.isHorizontal());
 		board.ships.set(choixNav - 1, shipToMove);
+		board.updateBoard();
 
     	board.printBoard();
 		System.out.printf("Navire déplacé en %s\n", board.Point2Coord(targetPos));
-    }
+    } 
+    
+    
 }

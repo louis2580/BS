@@ -1,12 +1,9 @@
 package BS;
 
-import java.awt.List;
 import java.awt.Point;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Scanner;
-
-import javax.swing.text.Position;
 
 public class Board {
 	private char[][] board;
@@ -51,7 +48,11 @@ public class Board {
 		board = new char[BOARD_SIZE][BOARD_SIZE];
 
 		ships = new ArrayList<Ship>();
-		ships.add(new Ship("Porte-avion", PORTEAVION_SIZE, PORTEAVION_REACH));
+		ships.add(new Ship("Porte-avion", 	PORTEAVION_SIZE, 		PORTEAVION_REACH));
+		ships.add(new Ship("Croiseur", 		CROISEUR_SIZE, 			CROISEUR_REACH));
+		ships.add(new Ship("Destroyer", 	CONTRETORPILLEUR_SIZE, 	CONTRETORPILLEUR_REACH));
+		ships.add(new Ship("Sous-marin", 	SOUSMARIN_SIZE, 		SOUSMARIN_REACH));
+		ships.add(new Ship("Torpilleur", 	TORPILLEUR_SIZE, 		TORPILLEUR_REACH));
 		
 		for (int i = 0; i < BOARD_SIZE; i++) {
 			for (int j = 0; j < BOARD_SIZE; j++) {
@@ -100,8 +101,15 @@ public class Board {
 			Point startingPoint = askValidStartingPoint(ship, horizontal);
 			placeValidShip(ship, startingPoint, horizontal);
 		}
+
+		printBoard();
+		Scanner scanner = new Scanner(System.in);
+		System.out.println("Appuyez sur Entrée pour finir votre tour...");
+		scanner.nextLine();
 	}
 
+	// Appelé pour demander en boucle une orientation au joueur tant qu'il entre une valeur incorrecte
+	
 	private boolean askValidShipDirection() {
 		Character direction;
 		Scanner scanner = new Scanner(System.in);
@@ -111,40 +119,17 @@ public class Board {
 		} while (!direction.toString().equals("h") && !direction.toString().equals("H")
 				&& !direction.toString().equals("v") && !direction.toString().equals("V"));
 		
+		scanner.reset();
 		return ((new Character('H')).equals(direction) || (new Character('h')).equals(direction));
 		// note here: use "constant".equals(variable) so nullpointer is impossible.
 		// probably not needed, but it's best practice in general.
-	}
 
+	}
+	
+	// Appelé pour demander en boucle une position initiale au joueur tant qu'il entre une valeur incorrecte
+	
 	private Point askValidStartingPoint(Ship ship, boolean horizontal) {
 		
-		/*
-		Scanner scanner = new Scanner(System.in);
-		String coord;
-		char a = ' ', b = ' ';
-		int x = 10, y = 10;
-		Point from = new Point(x, y);
-		do { 
-			System.out.printf("Position de départ : ");
-
-			// Il faut juste entrer les coordonnées comme suit: a5
-			coord = scanner.nextLine();
-			if (coord.length() == 2)
-			{
-				a = coord.charAt(0);
-				b = coord.charAt(1);
-				y = "abcdefghij".indexOf(a);
-				x = b-'0';
-				from = new Point(x, y);
-				
-				if (!isInsideBoard(x, y))
-				{
-					
-					System.out.println("Coordonnées non valides !");
-				}
-			}
-			*/
-
 		Point from = new Point();
 		
 		do 
@@ -155,7 +140,8 @@ public class Board {
 		return from;
 	}
 
-
+	// Appelé pour demander en boucle une coordonnée au joueur tant qu'il entre une valeur incorrecte
+	
     public Point askForValidCoordinates()
     {
         Scanner sc = new Scanner(System.in);
@@ -181,34 +167,44 @@ public class Board {
 				}
 			}
 			sc.reset();
-		} while (x<0 || x>=10 || y<0 || y>=10);
+		} while (!isInsideBoard(x, y));
+
 		return target;
     }
     
+    // Vérifie si le navire peut être placé au point 'from' : dans la grille, pas sur un autre bateau...
 	public boolean isValidStartingPoint(Point from, int size, boolean horizontal) {
 		int line = from.x;
 		int col = from.y;
 		
-		boolean isValid = false;
+		boolean isValid = true;
 		
 		
-		// Si placé verticalement
+		// Si placé horizontalement
 		if (horizontal) {
 			if (isInsideBoard(from.x, from.y) && (from.x + size <= BOARD_SIZE)) {
 				for (int j = from.x; j < from.x + size; j++) {
-					if ((board[line][j] != SHIP_ICON)) {
-						isValid = true;
+					if ((board[col][j] != SEA_ICON)) { 
+						// Si il y a un autre bateau en dessous, autre que celui-ci
+						isValid = false;
 					}
 				}
-			} 
+			} else 
+			{
+				// Si le navire dépasse du terrain
+				isValid = false;
+			}
 		} else {
 			if (isInsideBoard(from.x, from.y) && (from.y + size <= BOARD_SIZE)) {
 				for (int i = from.y; i < from.y + size; i++) {
-					if ((board[i][col] != SHIP_ICON)) {
-						isValid = true;
+					if ((board[i][line] != SEA_ICON)) {
+						isValid = false;
 					}
 				}
-			} 
+			} else
+			{
+				isValid = false;
+			}
 		}
 		if (!isValid)
 		{
@@ -217,10 +213,8 @@ public class Board {
 		return isValid;
 	}
 
-	/**
-	 *
-	 * @param position
-	 */
+	// place les navires sur le board. Appelé seulement au début
+	
 	private void placeValidShip(Ship ship, Point startingPoint, boolean horizontal) {
 		int xDiff = 0;
 		int yDiff = 0;
@@ -236,106 +230,107 @@ public class Board {
 		} else {
 			yDiff = 1;
 		}
+
 		for (int i = 0; i < ship.getSize(); i++) {
 			Point currentPoint = new Point(startingPoint.x + i * xDiff, startingPoint.y+ i * yDiff);
 			ship.pushPointShip(currentPoint);
 			board[currentPoint.y][currentPoint.x] = SHIP_ICON;
 		}
 		
+		// Met à jour les coordonnées des points du navire
 		ship.updatePosition(startingPoint, horizontal);
-		
-		printBoard();
+	}
+	
+	// Met à jour la grille : appelé à chaque tour
+	public void updateBoard()
+	{
+		for (int i = 0; i < BOARD_SIZE; i++)
+		{
+			for (int j = 0; j < BOARD_SIZE; j++)
+			{
+				board[i][j] = SEA_ICON;
+			}
+		}
+		for (Ship ship : ships)
+		{
+			for (Point p : ship.getAllPointShip())
+			{
+				board[p.y][p.x] = SHIP_ICON;
+			}
+			for (Point p : ship.getTouchedPoint())
+			{
+				board[p.y][p.x] = SHIP_IS_HIT_ICON;
+			}
+		}
 	}
 
 	private boolean isInsideBoard(int x, int y) {
 		return (x < BOARD_SIZE && x >= 0 && y < BOARD_SIZE && y >= 0);
 	}
 
-	/////////////////////////////////////////////
-	/**
-	 *
-	 * @param position
-	 */
-	private void deletePointShipOnBoard(Point del) {
-		board[del.y][del.x] = SEA_ICON;
-	}
-
-	/**
-	 *
-	 * @param position
-	 */
-	private void drawShipOnBoard(Point newPoint) {
-		board[newPoint.y][newPoint.x] = SHIP_ICON;
-	}
-
+	// Appelé pour demander en boucle une coordonnée de tir au joueur 
+	// tant qu'il entre une valeur incorrecte ou hors de portée
 	
+	public Point askForValidFiringCoordinates()
+	{
+		Point target = new Point();
+		
+		boolean inRange = false;
+		do {
+			System.out.printf("Tir sur la case : ");
+			// Entrer les coordonnées comme suit: a1
+			
+	    	target = askForValidCoordinates();
+			inRange = isInRange(target);
+
+			if (!inRange)
+			{
+				System.out.println("Case hors de portée !");
+			}
+		} while (!inRange);
+		
+		return target;
+	}
+	
+	// Regarde si un point est à portée d'au moins un des navires
+	
+    public boolean isInRange(Point p)
+    {
+    	boolean inRange = false;
+    	ArrayList<Point> shootablePoints = new ArrayList<Point>();
+    	Point startPoint, endPoint;
+    	
+    	for (Ship ship : ships)
+    	{
+    		shootablePoints.clear();
+    		shootablePoints.addAll(ship.getAllPointShip());
+    		startPoint = ship.getPositionFrom();							// Premier point du navire
+    		endPoint = ship.getPointShip(ship.getAllPointShip().size() - 1); // Dernier point du navire
+    		for (int i = 1; i <= ship.getReach(); i++)
+    		{
+    			if (ship.isHorizontal())
+    			{
+    				shootablePoints.add(new Point (startPoint.x - i, startPoint.y));
+    				shootablePoints.add(new Point (endPoint.x + i, endPoint.y));
+    			} else
+    			{
+    				shootablePoints.add(new Point (startPoint.x, startPoint.y - i));
+    				shootablePoints.add(new Point (endPoint.x, endPoint.y + i));
+    			}
+    		}
+    		if (shootablePoints.contains(p))
+    		{
+    			inRange = true;
+    		}
+    	}
+    	return inRange;
+    }
+
+    
 	public String Point2Coord(Point pt)
 	{
 		char y = "abcdefghij".charAt(pt.y);
 		return new String("("+y+","+pt.x+")");
-	}
-
-	/**
-	 * ChangePosition
-	 */
-	void ChangePosition(String nameShip, String direction, int distance) {
-		
-		for (int i = 0; i < ships.size(); i++) {
-			Ship ship = ships.get(i);
-
-			if (ship.getName() == nameShip) {
-				ArrayList<Point> allPointShip = ship.getAllPointShip();
-				for (int i1 = 0; i1 < allPointShip.size() - 1; i1++) {
-					Point curent = allPointShip.get(i1);
-					switch (direction) {
-					case "gauche":
-						deletePointShipOnBoard(curent);
-						curent.x = curent.x - distance;
-						ship.setPointShip(i1, curent);
-						drawShipOnBoard(curent);
-						break;
-					case "droite":
-						deletePointShipOnBoard(curent);
-						printBoard();
-						curent.x = curent.x + distance;
-						ship.setPointShip(i1, curent);
-						drawShipOnBoard(curent);
-
-						break;
-					case "haut":
-						deletePointShipOnBoard(curent);
-						curent.y = curent.y - distance;
-						ship.setPointShip(i1, curent);
-						drawShipOnBoard(curent);
-						break;
-					case "bas":
-						deletePointShipOnBoard(curent);
-						curent.y = curent.y + distance;
-						ship.setPointShip(i1, curent);
-						drawShipOnBoard(curent);
-						break;
-					default:
-						System.out.println("Rien.");
-					}
-				}
-				printBoard();
-			}
-		}
-	}
-
-	/**
-	 *
-	 * @param position
-	 */
-	public static Point ToPoint(char colum, int line) {
-		int columNumero = 1;
-		for (int i = 0; i < BOARD_LETTERS.length; i++) {
-			if (colum == BOARD_LETTERS[i]) {
-				columNumero = i + 1;
-			}
-		}
-		Point pointBegin = new Point(columNumero, line);
-		return pointBegin;
 	}
 
 }

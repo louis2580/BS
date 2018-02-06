@@ -2,7 +2,6 @@ package BS;
 
 import java.awt.Point;
 import java.util.ArrayList;
-import java.util.List;
 
 public class Ship {
 
@@ -13,7 +12,8 @@ public class Ship {
 	private int life;			// Chaque bateau commence avec une vie de 2
 	private Point from;				// Première case du bateau
 	private boolean horizontal;			// true si le bateau est positionné horizontalement
-	private ArrayList<Point> allCases;		// Dernière case du bateau
+	private ArrayList<Point> allCases;		// toutes les cases du navire
+	private ArrayList<Point> touchedCases;	// cases touchées du navire
 	
 	
 	public Ship(String name, int size, int reach) {
@@ -23,6 +23,7 @@ public class Ship {
         this.life = 2;
         this.reach = reach;
         this.allCases = new ArrayList<Point>();
+        this.touchedCases = new ArrayList<Point>();
     }
 	
 	public String getName() {
@@ -74,8 +75,10 @@ public class Ship {
     		System.out.printf("Nouvelle position invalide : %d; %d", ptFrom.y, ptFrom.x);
     	} else
     	{
+    		this.horizontal = horizontal;
     		from = ptFrom;
     		this.allCases.clear();
+    		this.touchedCases.clear(); // Toutes les cases peuvent de nouveau être touchées
     		Point newPoint;
     		for (int i = 0; i < this.size; i++)
     		{
@@ -97,17 +100,21 @@ public class Ship {
     public Point getPointShip(int index) {
     	return allCases.get(index);
     }
-    
+
     public ArrayList<Point> getAllPointShip() {
     	return allCases;
+    }
+
+    public ArrayList<Point> getTouchedPoint() {
+    	return touchedCases;
     }
     
     ////////////////////////
     
     
     public void shipWasHit(Point touche) {
-		int iTouch = allCases.indexOf(touche);
-		allCases.remove(iTouch);		// Pour ne pas toucher 2 fois de suite au même endroit
+
+    	this.touchedCases.add(touche); // Pour ne pas toucher 2 fois de suite au même endroit
 		
         life--;
         
