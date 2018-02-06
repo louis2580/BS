@@ -4,28 +4,31 @@ import java.awt.Point;
 import java.util.Scanner;
 
 public class Player {
-    private int id;
+	
+	private int id;
     private int lives;
     Board board;
     public boolean canMove;
+    public boolean isComputer;
     
     public static final int PLAYER_LIVES = 10; //sum of all the ships, 2 lives/ship
 
     /**
-     * Instantiates a new Player.
+     * Instantiates a new Player (human or computer).
      *
      * @param id the id
      */
-    public Player(int id) {
-    	// "Clear" the console
-    	System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+
+    public Player(int id, boolean isComputer) {// "Clear" the console
+	System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
         System.out.printf("%n=== Joueur %s, à toi ! ==== \n", id);
         this.id = id;
         this.lives = PLAYER_LIVES;
-        this.board = new Board();
-        // Ajoute les ships à la création !
-        board.placeShipsOnBoard();
+        this.board = new Board(isComputer);
         this.canMove = true;
+        this.isComputer = isComputer;
+     // Ajoute les ships à la création !
+        board.placeShipsOnBoard();
     }
 
     /**
@@ -75,16 +78,26 @@ public class Player {
 		board.printBoard();
         
 		Point target;
-		target = board.askForValidFiringCoordinates();
+		
+		if (!isComputer)
+		{
+			target = board.askForValidFiringCoordinates();
+		} else
+		{
+			target = board.randomShoot();
+		}
 
 		// attaque
         Attack(target, opponent);
         
+        board.printBoard();
+    	
         // Déplacement
-    	board.printBoard();
-    	if (canMove)
+    	
+        
+        if (canMove)
     	{
-    		MoveShip();
+    		board.MoveShip();
     	} else
     	{
     		System.out.println("Déplacement impossible : vous avez été touché");
@@ -96,7 +109,6 @@ public class Player {
 
 		scanner.nextLine();
     }
-    
     
 
     /**
@@ -137,66 +149,8 @@ public class Player {
     {
     	for (Ship ship : board.ships)
     	{
-    		System.out.printf("\nJoueur %d : %s - vie= %d, premier pt : %s\n", this.id, ship.getName(), 
-    				ship.getLife(), board.Point2Coord(ship.getPositionFrom()));
+    		System.out.printf("Joueur %d : %s - vie= %d\n", 
+    				this.id, ship.getName(), ship.getLife());
     	}
     }
-    
-    public void MoveShip()
-    {
-    	Scanner sc = new Scanner(System.in);
-    	int choixNav;
-        
-    	System.out.println("\nNavires restants :");
-    	System.out.println("0 / Pas de déplacement");
-    	for (int i = 0; i < board.ships.size(); i++ )
-    	{
-    		Ship ship = board.ships.get(i);
-    		String lastPoint = board.Point2Coord(ship.getPointShip(ship.getAllPointShip().size()-1));
-    		System.out.printf("%d / %s, portée de %d, actuellement en %s -> %s\n", i+1, 
-    				ship.getName(), ship.getReach(), board.Point2Coord(ship.getPositionFrom()), lastPoint);
-    	}
-    	
-    	do {
-    		choixNav = -1;
-	    	System.out.print("\nChoisissez un navire à déplacer : ");
-	    	if (sc.hasNextInt())
-	    	{
-				choixNav = sc.nextInt();
-	    	} else
-	    	{
-				System.out.println("Saisie invalide");
-				sc.reset();
-				sc.nextLine();
-    		}
-			
-		} while (!(choixNav >= 0 && choixNav <= board.ships.size()));
-    	if (choixNav == 0) return; //  Si le joueur ne veut pas faire de déplacement, il entre '0'
-    	
-    	Ship shipToMove = board.ships.get(choixNav-1);
-		Point targetPos = new Point();
-		boolean tooFar;
-		do {
-			System.out.printf("Déplacement vers la case : ");
-
-			// Entrer les coordonnées comme suit: a1
-			
-			targetPos = board.askForValidCoordinates();
-			tooFar = Math.abs(targetPos.x - shipToMove.getPositionFrom().x) + Math.abs(targetPos.y - shipToMove.getPositionFrom().y)>2;
-			
-			if (tooFar)
-			{
-				System.out.println("\nCase trop éloignée. Réessayez.");
-			}
-		} while (tooFar || !board.isValidStartingPoint(targetPos, shipToMove.getSize(), shipToMove.isHorizontal()));
-		
-		shipToMove.updatePosition(targetPos, shipToMove.isHorizontal());
-		board.ships.set(choixNav - 1, shipToMove);
-		board.updateBoard();
-
-    	board.printBoard();
-		System.out.printf("Navire déplacé en %s\n", board.Point2Coord(targetPos));
-    } 
-    
-    
 }
